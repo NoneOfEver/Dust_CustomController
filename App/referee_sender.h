@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <cstdint>
 #include "angle_topic.hpp"
+#include "input_topic.hpp"
 #include "bsp_uart_port.h"
 
 constexpr size_t kFrameHeaderLength = 5;
@@ -48,9 +49,10 @@ private:
     CustomControllerData tx_{};
     std::uint8_t seq_{0};
     orb::AngleFrame last_angles_{};
+	orb::InputState last_input_{};
     BspUartHandle tx_uart_{nullptr};
 
-    void BuildPayload(uint8_t* data, const orb::AngleFrame& angles);
+    void BuildPayload(uint8_t* data, const orb::AngleFrame& angles, const orb::InputState& input);
     void ConcatenateFrame(const uint8_t* data, uint16_t data_length);
     void Transmit();
 };

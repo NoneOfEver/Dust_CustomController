@@ -8,6 +8,7 @@
 #include "bsp_uart_port.h"
 
 #include "angle_topic.hpp"
+#include "input_topic.hpp"
 #include "topic_pubsub.hpp"
 
 static osThreadId_t g_referee_sender_thread_id = nullptr;
@@ -49,19 +50,42 @@ void RefereeSender::StartThread()
 	g_referee_sender_thread_id = osThreadNew(&RefereeSender::ThreadEntry, &Instance(), &kAttr);
 }
 
-void RefereeSender::BuildPayload(uint8_t* data, const orb::AngleFrame& angles)
+void RefereeSender::BuildPayload(uint8_t* data, const orb::AngleFrame& angles, const orb::InputState& input)
 {
-	// payload[0..15] 依次放 4 路角度 float 的低 4 字节(小端)
-	// 与原先 union byte 的发送行为一致，但实现更明确。
 	constexpr std::size_t kAnglesToSend = orb::AngleFrame::kChannels;
 	constexpr std::size_t kBytesPerAngle = sizeof(float);
-	constexpr std::size_t kTotalBytes = kAnglesToSend * kBytesPerAngle;
-	for (std::size_t idx = 0; idx < kTotalBytes && idx < kDataLength; idx += kBytesPerAngle)
+	constexpr std::size_t kAngleBytes = kAnglesToSend * kBytesPerAngle; // 16
+	constexpr std::size_t kInputBytes = 1 + 6 * sizeof(std::uint16_t);  // buttons + (raw x3 + mv x3)
+	static_assert(kAngleBytes + kInputBytes <= kDataLength, "payload too small for angles + input");
+
+	// payload[0..15] 依次放 4 路角度 float (小端)
+	// 与原先 union byte 的发送行为一致，但实现更明确。
+	for (std::size_t idx = 0; idx < kAngleBytes && idx + kBytesPerAngle <= kDataLength; idx += kBytesPerAngle)
 	{
 		const std::size_t angle_index = idx / kBytesPerAngle;
 		const float angle = angles.angles[angle_index];
 		std::memcpy(&data[idx], &angle, kBytesPerAngle);
 	}
+
+	// 剩余字节：buttons + ADC(3 raw + 3 mv)
+	std::size_t off = kAngleBytes;
+	data[off++] = input.buttons;
+
+	auto put_u16_le = [&](std::uint16_t v) {
+		if (off + 2 > kDataLength)
+		{
+			return;
+		}
+		data[off++] = static_cast<std::uint8_t>(v & 0xFFu);
+		data[off++] = static_cast<std::uint8_t>((v >> 8) & 0xFFu);
+	};
+
+	put_u16_le(input.adc_x_raw);
+	put_u16_le(input.adc_y_raw);
+	put_u16_le(input.adc_z_raw);
+	put_u16_le(input.adc_x_mv);
+	put_u16_le(input.adc_y_mv);
+	put_u16_le(input.adc_z_mv);
 }
 
 void RefereeSender::ConcatenateFrame(const uint8_t* data, uint16_t data_length)
@@ -89,6 +113,7 @@ void RefereeSender::Transmit()
 void RefereeSender::ThreadLoop()
 {
 	Sub<orb::AngleFrame> sub(orb::angle_frame);
+	Sub<orb::InputState> input_sub(orb::input_state);
 
 	uint32_t wait_time = osKernelGetTickCount();
 	const uint32_t period_ticks = (uint32_t)((500ULL * osKernelGetTickFreq() + 999ULL) / 1000ULL);
@@ -100,8 +125,14 @@ void RefereeSender::ThreadLoop()
 			last_angles_ = latest;
 		}
 
+		orb::InputState latest_input{};
+		if (input_sub.copy(latest_input))
+		{
+			last_input_ = latest_input;
+		}
+
 		uint8_t payload[kDataLength] = {0};
-		BuildPayload(payload, last_angles_);
+		BuildPayload(payload, last_angles_, last_input_);
 		ConcatenateFrame(payload, kDataLength);
 		Transmit();
 		wait_time += period_ticks;
