@@ -72,11 +72,11 @@ void RefereeSender::ConcatenateFrame(const uint8_t* data, uint16_t data_length)
 	tx.frame_header.sof = 0xA5;
 	tx.frame_header.data_length = data_length;
 	tx.frame_header.seq = seq++;
-	append_CRC8_check_sum((uint8_t*)(&tx.frame_header), kFrameHeaderLength);
+	append_crc8_check_sum((uint8_t*)(&tx.frame_header), kFrameHeaderLength);
 
 	tx.cmd_id = kCmdId;
 	std::memcpy(tx.data, data, data_length);
-	append_CRC16_check_sum((uint8_t*)(&tx), kDataFrameLength);
+	append_crc16_check_sum((uint8_t*)(&tx), kDataFrameLength);
 }
 
 void RefereeSender::Transmit()

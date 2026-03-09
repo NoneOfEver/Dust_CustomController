@@ -116,12 +116,22 @@ void Vofa::ThreadLoop()
 			print_deadline = now + print_ticks;
 
 			// VOFA 协议：连续发送 float，最后补一个 Tail
-			// 顺序：A0 A1 A2 A3 BUTTONS ADC_X_RAW ADC_Y_RAW ADC_Z_RAW
+			// 顺序：A0 A1 A2 A3 B1 B2 B3 B4 JB ADC_X_RAW ADC_Y_RAW ADC_Z_RAW
 			SendFloat(last.angles[0]);
 			SendFloat(last.angles[1]);
 			SendFloat(last.angles[2]);
 			SendFloat(last.angles[3]);
-			SendFloat(has_input ? static_cast<float>(input_last.buttons) : 0.0f);
+			const uint32_t buttons = has_input ? static_cast<uint32_t>(input_last.buttons) : 0u;
+			uint8_t button1 = (buttons >> 0) & 1u;
+			uint8_t button2 = (buttons >> 1) & 1u;
+			uint8_t button3 = (buttons >> 2) & 1u;
+			uint8_t button4 = (buttons >> 3) & 1u;
+			uint8_t joystick_button = (buttons >> 4) & 1u;
+			SendFloat(static_cast<float>(button1));
+			SendFloat(static_cast<float>(button2));
+			SendFloat(static_cast<float>(button3));
+			SendFloat(static_cast<float>(button4));
+			SendFloat(static_cast<float>(joystick_button));
 			SendFloat(has_input ? static_cast<float>(input_last.adc_x_raw) : 0.0f);
 			SendFloat(has_input ? static_cast<float>(input_last.adc_y_raw) : 0.0f);
 			SendFloat(has_input ? static_cast<float>(input_last.adc_z_raw) : 0.0f);
