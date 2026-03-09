@@ -14,7 +14,8 @@ namespace
 		ADC_ChannelConfTypeDef sConfig{};
 		sConfig.Channel = channel;
 		sConfig.Rank = 1;
-		sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+		// 摇杆/电位器类信号建议更长采样时间，降低噪声并提升通道切换后的稳定性。
+		sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
 		return HAL_ADC_ConfigChannel(hadc, &sConfig) == HAL_OK;
 	}
 
@@ -22,19 +23,28 @@ namespace
 	{
 		if (hadc == nullptr || out_raw == nullptr) return false;
 
-		if (HAL_ADC_Start(hadc) != HAL_OK) return false;
-		const HAL_StatusTypeDef st = HAL_ADC_PollForConversion(hadc, 10);
-		if (st != HAL_OK)
+		// 多通道切换/快速连续读取时，第一笔可能受上一次通道残留影响；
+		// 这里做“双采样取第二次”，代价很小但稳定性提升明显。
+		for (int pass = 0; pass < 2; ++pass)
 		{
+			if (HAL_ADC_Start(hadc) != HAL_OK) return false;
+			const HAL_StatusTypeDef st = HAL_ADC_PollForConversion(hadc, 10);
+			if (st != HAL_OK)
+			{
+				(void)HAL_ADC_Stop(hadc);
+				return false;
+			}
+			const uint32_t v = HAL_ADC_GetValue(hadc);
 			(void)HAL_ADC_Stop(hadc);
-			return false;
+
+			if (pass == 1)
+			{
+				*out_raw = static_cast<uint16_t>(v & 0x0FFFu);
+				return true;
+			}
 		}
 
-		const uint32_t v = HAL_ADC_GetValue(hadc);
-		(void)HAL_ADC_Stop(hadc);
-
-		*out_raw = static_cast<uint16_t>(v & 0x0FFFu);
-		return true;
+		return false;
 	}
 
 	bool map_channel(BspAdcChannelId ch, ADC_HandleTypeDef*& out_adc, uint32_t& out_channel)
@@ -42,8 +52,8 @@ namespace
 		out_adc = &hadc1;
 		switch (ch)
 		{
-			case BSP_ADC1_JOYSTICK_Z: out_channel = ADC_CHANNEL_4; return true;
-			case BSP_ADC1_JOYSTICK_X: out_channel = ADC_CHANNEL_5; return true;
+			case BSP_ADC1_JOYSTICK_Z: out_channel = ADC_CHANNEL_14; return true;
+			case BSP_ADC1_JOYSTICK_X: out_channel = ADC_CHANNEL_15; return true;
 			case BSP_ADC1_JOYSTICK_Y: out_channel = ADC_CHANNEL_8; return true;
 			default: return false;
 		}

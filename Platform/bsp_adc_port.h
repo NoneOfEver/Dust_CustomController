@@ -17,8 +17,8 @@ extern "C" {
 #include <stdint.h>
 
 typedef enum {
-	BSP_ADC1_JOYSTICK_Z = 1, // PA4 / ADC1_IN4
-	BSP_ADC1_JOYSTICK_X = 2, // PA5 / ADC1_IN5
+	BSP_ADC1_JOYSTICK_Z = 1, // PC4 / ADC1_IN14
+	BSP_ADC1_JOYSTICK_X = 2, // PC5 / ADC1_IN15
 	BSP_ADC1_JOYSTICK_Y = 3, // PB0 / ADC1_IN8
 } BspAdcChannelId;
 

@@ -65,12 +65,12 @@ void Error_Handler(void);
 #define BUTTON3_GPIO_Port GPIOC
 #define BUTTON4_Pin GPIO_PIN_3
 #define BUTTON4_GPIO_Port GPIOC
-#define JOYSTICK_Z_Pin GPIO_PIN_4
-#define JOYSTICK_Z_GPIO_Port GPIOA
-#define JOYSTICK_X_Pin GPIO_PIN_5
-#define JOYSTICK_X_GPIO_Port GPIOA
-#define JOYSTICK_Y_Pin GPIO_PIN_0
-#define JOYSTICK_Y_GPIO_Port GPIOB
+#define JoyStickZ_Pin GPIO_PIN_4
+#define JoyStickZ_GPIO_Port GPIOC
+#define JoyStickX_Pin GPIO_PIN_5
+#define JoyStickX_GPIO_Port GPIOC
+#define JoyStickY_Pin GPIO_PIN_0
+#define JoyStickY_GPIO_Port GPIOB
 #define JOYSTICK_BUTTON_Pin GPIO_PIN_7
 #define JOYSTICK_BUTTON_GPIO_Port GPIOB
 

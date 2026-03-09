@@ -86,22 +86,22 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     /* ADC1 clock enable */
     __HAL_RCC_ADC1_CLK_ENABLE();
 
-    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ADC1 GPIO Configuration
-    PA4     ------> ADC1_IN4
-    PA5     ------> ADC1_IN5
+    PC4     ------> ADC1_IN14
+    PC5     ------> ADC1_IN15
     PB0     ------> ADC1_IN8
     */
-    GPIO_InitStruct.Pin = JOYSTICK_Z_Pin|JOYSTICK_X_Pin;
+    GPIO_InitStruct.Pin = JoyStickZ_Pin|JoyStickX_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = JOYSTICK_Y_Pin;
+    GPIO_InitStruct.Pin = JoyStickY_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(JOYSTICK_Y_GPIO_Port, &GPIO_InitStruct);
+    HAL_GPIO_Init(JoyStickY_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN ADC1_MspInit 1 */
 
@@ -121,13 +121,13 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC1_CLK_DISABLE();
 
     /**ADC1 GPIO Configuration
-    PA4     ------> ADC1_IN4
-    PA5     ------> ADC1_IN5
+    PC4     ------> ADC1_IN14
+    PC5     ------> ADC1_IN15
     PB0     ------> ADC1_IN8
     */
-    HAL_GPIO_DeInit(GPIOA, JOYSTICK_Z_Pin|JOYSTICK_X_Pin);
+    HAL_GPIO_DeInit(GPIOC, JoyStickZ_Pin|JoyStickX_Pin);
 
-    HAL_GPIO_DeInit(JOYSTICK_Y_GPIO_Port, JOYSTICK_Y_Pin);
+    HAL_GPIO_DeInit(JoyStickY_GPIO_Port, JoyStickY_Pin);
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 
