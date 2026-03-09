@@ -40,7 +40,6 @@ void Vofa::ThreadEntry(void* argument)
 	osThreadExit();
 }
 
-
 void Vofa::StartThread()
 {
 	if (g_angle_debug_thread_id != nullptr)
@@ -121,12 +120,14 @@ void Vofa::ThreadLoop()
 			SendFloat(last.angles[1]);
 			SendFloat(last.angles[2]);
 			SendFloat(last.angles[3]);
+
 			const uint32_t buttons = has_input ? static_cast<uint32_t>(input_last.buttons) : 0u;
 			uint8_t button1 = (buttons >> 0) & 1u;
 			uint8_t button2 = (buttons >> 1) & 1u;
 			uint8_t button3 = (buttons >> 2) & 1u;
 			uint8_t button4 = (buttons >> 3) & 1u;
 			uint8_t joystick_button = (buttons >> 4) & 1u;
+
 			SendFloat(static_cast<float>(button1));
 			SendFloat(static_cast<float>(button2));
 			SendFloat(static_cast<float>(button3));

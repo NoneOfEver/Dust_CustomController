@@ -28,11 +28,23 @@ private:
 	static AngleReciever& Instance();
 	static void ThreadEntry(void* argument);
 
-	static constexpr std::size_t kMinParseBytes = 16;
 	static constexpr std::size_t kAngleChannels = 4;
+
+	enum class SensorState : std::uint8_t {
+		NeedZero = 0,
+		WaitZeroOk = 1,
+		NeedPrate = 2,
+		WaitPrateOk = 3,
+		Running = 4,
+	};
 
 	Angle angles_[kAngleChannels]{};
 	uint16_t rx_len_[kAngleChannels]{};
+	SensorState sensor_state_[kAngleChannels]{};
+	uint32_t next_config_retry_tick_[kAngleChannels]{};
+	bool unwrap_inited_[kAngleChannels]{};
+	float last_raw_deg_[kAngleChannels]{};
+	float unwrapped_deg_[kAngleChannels]{};
 
 	Angle* Angles();
 	void ParseAndPublish(uint32_t updated_mask);
