@@ -1,0 +1,11 @@
+device STM32F446RE
+si SWD
+speed 4000
+connect
+
+r
+loadfile build/Dust_CustomController.elf
+
+r
+g
+exit
